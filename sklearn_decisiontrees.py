@@ -1,5 +1,5 @@
 
-from sklearn.datasets import load_iris
+from sklearn.datasets import load_iris, fetch_covtype
 from sklearn import tree
 from sklearn.model_selection import KFold
 from sklearn.ensemble import RandomForestClassifier, HistGradientBoostingClassifier
@@ -11,18 +11,35 @@ import joblib
 ### This code shows how to use KFold to do cross_validation.
 ### This is just one of many ways to manage training and test sets in sklearn.
 
-iris = load_iris()
+iris = fetch_covtype()
 X, y = iris.data, iris.target
+estimators = [10, 25, 50]
+criteria = ['gini', 'entropy']
 scores = []
 kf = KFold(n_splits=5)
-for train_index, test_index in kf.split(X) :
-    X_train, X_test, y_train, y_test = \
-        (X[train_index], X[test_index], y[train_index], y[test_index])
-    clf = tree.DecisionTreeClassifier()
-    clf.fit(X_train, y_train)
-    scores.append(clf.score(X_test, y_test))
+for n in estimators:
+    for criterion in criteria:
+        fold_scores = []
+        for train_index, test_index in kf.split(X):
+            X_train, X_test = X[train_index], X[test_index]
+            y_train, y_test = y[train_index], y[test_index]
+            
+            clf = RandomForestClassifier(n_estimators=n, criterion=criterion)
+            clf.fit(X_train, y_train)
+            
+            score = clf.score(X_test, y_test)
+            fold_scores.append(score)
+                
+        scores.append({
+            'n_estimators': n,
+            'criterion': criterion,
+            'average_score': sum(fold_scores) / len(fold_scores)
+        })
 
-print(scores)
+print("Results:")
+print("n_estimators\tcriterion\taverage_score")
+for result in scores:
+    print(f"{result['n_estimators']}\t\t{result['criterion']}\t\t{result['average_score']:.4f}")
 
 ## Part 2. This code (from https://scikit-learn.org/1.5/auto_examples/ensemble/plot_forest_hist_grad_boosting_comparison.html)
 ## shows how to use GridSearchCV to do a hyperparameter search to compare two techniques.
@@ -42,10 +59,10 @@ models = {
     ),
 }
 param_grids = {
-    "Random Forest": {"n_estimators": [10, 20, 50, 100]},
-    "Hist Gradient Boosting": {"max_iter": [10, 20, 50, 100, 300, 500]},
+    "Random Forest": {"n_estimators": [5,10,15,29]},
+    "Hist Gradient Boosting": {"max_iter": [25,50,75,100]},
 }
-cv = KFold(n_splits=2, shuffle=True, random_state=0)
+cv = KFold(n_splits=5, shuffle=True, random_state=0)
 
 results = []
 for name, model in models.items():
