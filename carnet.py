@@ -7,12 +7,20 @@ car_model = BayesianNetwork(
         ("Battery", "Ignition"),
         ("Ignition","Starts"),
         ("Gas","Starts"),
-        ("Starts","Moves")
+        ("Starts","Moves"),
+        ("KeyPresent", "Starts")
     ]
 )
 
 # Defining the parameters using CPT
 from pgmpy.factors.discrete import TabularCPD
+
+cpd_keypresent = TabularCPD(
+    variable="KeyPresent",
+    variable_card=2,
+    values=[[0.7], [0.3]],
+    state_names={"KeyPresent": ['yes', 'no']},
+)
 
 cpd_battery = TabularCPD(
     variable="Battery", variable_card=2, values=[[0.70], [0.30]],
@@ -45,10 +53,20 @@ cpd_ignition = TabularCPD(
 cpd_starts = TabularCPD(
     variable="Starts",
     variable_card=2,
-    values=[[0.95, 0.05, 0.05, 0.001], [0.05, 0.95, 0.95, 0.9999]],
-    evidence=["Ignition", "Gas"],
-    evidence_card=[2, 2],
-    state_names={"Starts":['yes','no'], "Ignition":["Works", "Doesn't work"], "Gas":['Full',"Empty"]},
+    values=[
+        # Starts='yes' probabilities
+        [0.99, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01],
+        # Starts='no' probabilities
+        [0.01, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99],
+    ],
+    evidence=["Ignition", "Gas", "KeyPresent"],
+    evidence_card=[2, 2, 2],
+    state_names={
+        "Starts": ['yes', 'no'],
+        "Ignition": ["Works", "Doesn't work"],
+        "Gas": ['Full', 'Empty'],
+        "KeyPresent": ['yes', 'no'],
+    },
 )
 
 cpd_moves = TabularCPD(
@@ -62,10 +80,14 @@ cpd_moves = TabularCPD(
 
 
 # Associating the parameters with the model structure
-car_model.add_cpds( cpd_starts, cpd_ignition, cpd_gas, cpd_radio, cpd_battery, cpd_moves)
+car_model.add_cpds( cpd_starts, cpd_ignition, cpd_gas, cpd_radio, cpd_battery, cpd_moves, cpd_keypresent)
 
 car_infer = VariableElimination(car_model)
 
+q = car_infer.query(
+    variables=["KeyPresent"],
+    evidence={"Moves": "no"}
+)
+print("\nProbability that the key is not present given that the car does not move:")
+print(q)
 print(car_infer.query(variables=["Moves"],evidence={"Radio":"turns on", "Starts":"yes"}))
-
-
