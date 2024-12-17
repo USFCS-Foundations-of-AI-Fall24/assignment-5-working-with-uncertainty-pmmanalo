@@ -1,0 +1,48 @@
+Assignment 5 Comments:
+
+sklearn:
+
+new dataset. 5/5
+
+random forest 5/5
+
+GridSearchCV 5/5
+
+Scatterplot 5/5
+
+Belief Networks:
+
+alarm queries 5/5
+
+car queries 0/5 - I don't see these anywhere
+
+additional node 5/5
+
+HMM:
+
+load 5/5
+
+generate 7/10 - generate only uses part-of-speech
+
+lander models 0/5 not done
+
+forward 7/10 - only works with part of speech - no safety check
+
+viterbi 12/15 seems ok, but only works with part of speech.
+
+Utility:
+
+q1 4/5 please convert to minutes first.
+
+q2 5/5
+
+q3 2/2
+
+q4 3/3
+
+q5 2/2
+
+q6 3/3
+
+80/100
+
